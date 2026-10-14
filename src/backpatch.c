@@ -63,7 +63,7 @@ patch_list_t *patch_list_merge(patch_list_t *l1, patch_list_t *l2)
         temp = p->next;
     }
     p->next = l2;
-    return p;
+    return l1;
 }
 
 /*
@@ -88,6 +88,7 @@ void patch_list_backpatch(patch_list_t *list, const char *label)
     while(p != NULL){
         free(p->instr->result);
         p->instr->result = strdup(label);
+        p = p->next;
     }
 }
 
