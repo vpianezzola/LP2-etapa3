@@ -410,7 +410,28 @@ void codegen_stmt(codegen_ctx_t *ctx, ast_node_t *stmt)
          *   Preenche cond.false_list → emite lend
          * --------------------------------------------------------------- */
         case AST_WHILE:
-            fprintf(stderr, "[CODEGEN] TODO-E3-C: while não implementado.\n");
+            char *lbegin = tac_new_label();
+            codegen_emit(ctx, TAC_LABEL, lbegin, NULL, NULL);
+            
+            bool_result_t cond = codegen_bool_expr(ctx, stmt->children[0]);
+
+            char *lbody = tac_new_label();
+            patch_list_backpatch(cond.true_list, lbody);
+            codegen_emit(ctx, TAC_LABEL, lbody, NULL, NULL);
+
+            codegen_emit(ctx, stmt->children[1]);
+            codegen_emit(ctx, TAC_JUMP, lbegin, NULL, NULL);
+
+            char *lend = tac_net_label();
+            patch_list_backpatch(cond.false_list, lend);
+            codegen_emit(ctx, TAC_LABEL, lend, NULL, NULL);
+
+            patch_list_free(cond.true_list);
+            patch_list_free(cond.false_list);
+            free(lbegin);
+            free(lbody);
+            free(lend);            
+            //fprintf(stderr, "[CODEGEN] TODO-E3-C: while não implementado.\n");
             break;
 
         /* ---------------------------------------------------------------
@@ -430,12 +451,36 @@ void codegen_stmt(codegen_ctx_t *ctx, ast_node_t *stmt)
          *   Preenche cond.false_list → emite lend
          * --------------------------------------------------------------- */
         case AST_FOR:
+            codegen_stmt(ctx, stmt->children[0]);
+
+            char *lbegin = tac_new_label();
+            codegen_emit(ctx, TAC_LABEL, lbegin, NULL, NULL);
+
+            bool_result_t cond = codegen_bool_expr(ctx, stmt->children[1]);
+
+            char *lbody = tac_new_label;
+            patch_list_backpatch(cond.true_list, lbody);
+            codegen_emit(ctx, TAC_LABEL, lbody, NULL, NULL);
+
+            codegen_stmt(ctx, stmt->children[3]);
+            codegen_stmt(ctx, stmt->children[2]);
+            codegen_emit(ctx, TAC_JUMP, lbegin, NULL, NULL);
+
+            char *lend = tac_new_label();
+            patch_list_backpatch(cond.false_list, lend);
+            codegen_emit(ctx, TAC_LABEL, lend, NULL, NULL);
+
+            patch_list_free(cond.true_list);
+            patch_list_free(cond.false_list);
+            free(lbegin);
+            free(lbody);
+            free(lend);
             fprintf(stderr, "[CODEGEN] TODO-E3-D: for não implementado.\n");
             break;
 
-        default:
-            fprintf(stderr, "[CODEGEN] Comando desconhecido tipo=%d\n", stmt->type);
-            break;
+        //default:
+        //    fprintf(stderr, "[CODEGEN] Comando desconhecido tipo=%d\n", stmt->type);
+        //    break;
     }
 }
 
